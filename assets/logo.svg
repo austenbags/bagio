@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 174">
+  <defs>
+    <linearGradient id="og" x1="0.2" y1="0.1" x2="0.8" y2="0.9">
+      <stop offset="0%" stop-color="#F09040"/>
+      <stop offset="100%" stop-color="#C03A08"/>
+    </linearGradient>
+  </defs>
+  <!-- Orange inner hex (drawn first, shows through ring cutout) -->
+  <polygon points="34,87 67,30 133,30 166,87 133,144 67,144" fill="url(#og)"/>
+  <!-- Dark ring: outer hex with inner hex cut out using evenodd -->
+  <path fill-rule="evenodd" fill="#191710"
+    d="M0,87 L50,0 L150,0 L200,87 L150,174 L50,174 Z
+       M34,87 L67,30 L133,30 L166,87 L133,144 L67,144 Z"/>
+</svg>

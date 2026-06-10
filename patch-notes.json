@@ -1,0 +1,67 @@
+{
+  "version": "1.0.39",
+  "date": "{{DATE}}",
+  "blocks": [
+    {
+      "text": "Acid Lab — v1.0.39",
+      "size": 26,
+      "bold": true,
+      "color": "#E86820"
+    },
+    {
+      "text": "{{DATE}}",
+      "size": 11,
+      "color": "rgba(255,255,255,.3)"
+    },
+    {
+      "text": " ",
+      "size": 8
+    },
+    {
+      "text": "New",
+      "size": 13,
+      "bold": true,
+      "color": "rgba(255,255,255,.9)"
+    },
+    {
+      "text": "New app icon — updated to the hexagon logo.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": " ",
+      "size": 8
+    },
+    {
+      "text": "Previous — v1.0.38",
+      "size": 13,
+      "bold": true,
+      "color": "rgba(255,255,255,.5)"
+    },
+    {
+      "text": "Multi-band Compressor — OUTPUT knob now correctly applied after all three bands.",
+      "size": 13,
+      "color": "rgba(255,255,255,.4)"
+    },
+    {
+      "text": "Glitch — FIRE RATE and grid cells now sync to the audio engine in real time.",
+      "size": 13,
+      "color": "rgba(255,255,255,.4)"
+    },
+    {
+      "text": "Distortion — drive pad now renders a grid and crosshair overlay.",
+      "size": 13,
+      "color": "rgba(255,255,255,.4)"
+    },
+    {
+      "text": "Update checker — status panel in Settings now displays checking, downloading, and error states correctly.",
+      "size": 13,
+      "color": "rgba(255,255,255,.4)"
+    },
+    {
+      "text": "macOS — Acid Lab is now available as a .dmg for Intel Macs (Rosetta 2 on Apple Silicon).",
+      "size": 13,
+      "color": "rgba(255,255,255,.4)"
+    }
+  ]
+}

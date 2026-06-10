@@ -1,0 +1,96 @@
+{
+  "name": "acid-lab",
+  "version": "1.0.39",
+  "description": "Acid Lab — music creation ecosystem",
+  "main": "main.js",
+  "author": "Acid Lab",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "control-board": "electron control-board-main.js",
+    "build": "electron-builder --win",
+    "publish": "electron-builder --win --publish always",
+    "build-mac": "electron-builder --mac",
+    "publish-mac": "electron-builder --mac --publish always"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.2.1"
+  },
+  "build": {
+    "appId": "com.acidlab.app",
+    "productName": "Acid Lab",
+    "files": [
+      "index.html",
+      "launcher.html",
+      "styles.css",
+      "app.js",
+      "main.js",
+      "preload.js",
+      "preload-launcher.js",
+      "patch-notes.json",
+      "icon.png",
+      "assets/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Acid Lab",
+      "deleteAppDataOnUninstall": false
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icon.png",
+      "category": "public.app-category.music",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "Acid Lab",
+      "contents": [
+        {
+          "x": 130,
+          "y": 150
+        },
+        {
+          "x": 410,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "releaseInfo": {
+      "releaseNotes": ""
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "austenbags",
+        "repo": "bagio",
+        "releaseType": "release"
+      }
+    ]
+  }
+}

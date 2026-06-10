@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acid Lab — Download</title>
+  <style>
+    :root {
+      --bg: #0c0d0a;
+      --surface: #131410;
+      --surface2: #1a1c14;
+      --accent: #E86820;
+      --accent-glow: rgba(232,104,32,0.18);
+      --text: #e8e4da;
+      --muted: rgba(232,228,218,0.45);
+      --faint: rgba(232,228,218,0.12);
+      --border: rgba(255,255,255,0.07);
+      --win-color: #4ab3f4;
+      --mac-color: #a8d8a8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(12,13,10,0.88);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .nav-logo-text {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .nav-link {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    /* ── HERO ── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 100px 24px 80px;
+      position: relative;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .hero-bg-glow {
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(232,104,32,0.10) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 100%);
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(232,104,32,0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+    }
+    .hero-badge-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    h1 {
+      font-size: clamp(52px, 10vw, 96px);
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 16px;
+      background: linear-gradient(160deg, #fff 0%, rgba(232,228,218,0.65) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.6;
+      margin-bottom: 52px;
+      font-weight: 300;
+    }
+
+    /* ── DOWNLOAD AREA ── */
+    .dl-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .dl-primary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px 32px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      box-shadow: 0 4px 24px rgba(232,104,32,0.35);
+      min-width: 240px;
+      justify-content: center;
+    }
+    .dl-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(232,104,32,0.5);
+    }
+    .dl-primary:active { transform: translateY(0); }
+    .dl-primary.loading { opacity: 0.6; cursor: default; pointer-events: none; }
+    .dl-primary svg { flex-shrink: 0; }
+
+    .dl-alts {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .dl-alt {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .dl-alt:hover {
+      border-color: rgba(255,255,255,0.15);
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+    }
+    .dl-alt.highlighted {
+      border-color: rgba(255,255,255,0.15);
+      color: var(--text);
+    }
+
+    .version-info {
+      font-size: 12px;
+      color: var(--faint);
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+    .version-info span { color: var(--muted); }
+
+    /* ── WAVEFORM DIVIDER ── */
+    .wave-divider {
+      width: 100%;
+      height: 60px;
+      margin: 20px 0;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 80px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      margin-bottom: 48px;
+      color: var(--text);
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover {
+      border-color: rgba(232,104,32,0.2);
+      background: rgba(232,104,32,0.04);
+    }
+    .feature-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(232,104,32,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      font-size: 16px;
+    }
+    .feature-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .feature-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── REQUIREMENTS ── */
+    .requirements {
+      padding: 60px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .req-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .req-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 28px;
+    }
+    .req-platform {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .req-win { color: var(--win-color); }
+    .req-mac { color: var(--mac-color); }
+    .req-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .req-list li {
+      font-size: 13px;
+      color: var(--muted);
+      padding-left: 14px;
+      position: relative;
+    }
+    .req-list li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: var(--faint);
+    }
+
+    /* ── MAC WARNING ── */
+    .mac-note {
+      margin: 0 48px 40px;
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
+      background: rgba(168,216,168,0.06);
+      border: 1px solid rgba(168,216,168,0.15);
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 12px;
+      color: rgba(168,216,168,0.7);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .mac-note-icon { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--faint);
+    }
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    footer a:hover { color: var(--text); }
+    .footer-links { display: flex; gap: 24px; }
+
+    /* ── SPINNER ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 70px 20px 60px; }
+      .features, .requirements { padding: 60px 20px; }
+      .req-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 12px; padding: 20px; }
+      .mac-note { margin: 0 20px 32px; }
+      .dl-alts { flex-direction: column; width: 100%; }
+      .dl-alt { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-dot"></div>
+    <span class="nav-logo-text">Acid Lab</span>
+  </a>
+  <a class="nav-link" href="https://github.com/austenbags/bagio" target="_blank">GitHub →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-bg-glow"></div>
+    <div class="hero-bg-grid"></div>
+  </div>
+
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    <span id="badge-text">Free Download</span>
+  </div>
+
+  <h1>Acid Lab</h1>
+  <p class="hero-sub">A modular music creation studio. Wire synths, effects and sequencers together on an infinite canvas.</p>
+
+  <div class="dl-area">
+    <!-- Primary download (auto-detected OS) -->
+    <a id="dl-primary" class="dl-primary loading" href="#">
+      <div class="spinner"></div>
+      <span id="dl-primary-text">Finding latest release…</span>
+    </a>
+
+    <!-- Secondary platform -->
+    <div class="dl-alts">
+      <a id="dl-win" class="dl-alt" href="#">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="0" y="0" width="6.5" height="6.5" rx="0.8" fill="currentColor" opacity="0.8"/>
+          <rect x="7.5" y="0" width="6.5" height="6.5" rx="0.8" fill="currentColor" opacity="0.8"/>
+          <rect x="0" y="7.5" width="6.5" height="6.5" rx="0.8" fill="currentColor" opacity="0.8"/>
+          <rect x="7.5" y="7.5" width="6.5" height="6.5" rx="0.8" fill="currentColor" opacity="0.8"/>
+        </svg>
+        Windows
+      </a>
+      <a id="dl-mac" class="dl-alt" href="#">
+        <svg width="13" height="14" viewBox="0 0 13 14" fill="none">
+          <path d="M10.5 7.4c0-1.9 1.6-2.8 1.6-2.8s-0.9-1.3-2.3-1.3c-1 0-1.9 0.6-2.4 0.6s-1.3-0.6-2.2-0.6C3.3 3.3 1.5 4.7 1.5 7.6c0 1.8 0.7 3.7 1.6 4.9 0.7 1 1.4 1.5 2.1 1.5 0.8 0 1.1-0.5 2.1-0.5 1 0 1.3 0.5 2.1 0.5 0.8 0 1.4-0.7 2-1.5 0.4-0.6 0.7-1.3 0.9-1.9 0 0-1.8-0.7-1.8-2.7z" fill="currentColor" opacity="0.8"/>
+          <path d="M8.8 1.8c0.6-0.7 1-1.6 0.9-2.5-0.9 0-1.9 0.6-2.5 1.3-0.5 0.6-1 1.5-0.8 2.4 0.9 0.1 1.8-0.5 2.4-1.2z" fill="currentColor" opacity="0.8"/>
+        </svg>
+        macOS
+      </a>
+    </div>
+
+    <p class="version-info" id="version-info">Fetching version…</p>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <p class="section-label">What's inside</p>
+  <h2 class="section-title">Everything you need to create</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⬡</div>
+      <div class="feature-title">Modular Canvas</div>
+      <div class="feature-desc">Drag, wire and arrange 30+ studio apps on an infinite zoomable workspace. Connect anything to anything.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎛</div>
+      <div class="feature-title">30+ Studio Apps</div>
+      <div class="feature-desc">Synths, sequencers, effects, utilities — wavetable, granular, distortion, reverb, EQ, sidechain and more.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">〜</div>
+      <div class="feature-title">Real-time Audio Engine</div>
+      <div class="feature-desc">Built on the Web Audio API with a low-latency graph. No plugins, no DAW — runs entirely native in Electron.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⬤</div>
+      <div class="feature-title">Step Sequencer & Piano Roll</div>
+      <div class="feature-desc">16-step melodic sequencer with velocity bars and scale quantisation. Drives any connected synth.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◈</div>
+      <div class="feature-title">Wire Routing</div>
+      <div class="feature-desc">Fan-out wires, rubber-band multi-select, drag to workspace. Build complex signal chains visually.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">↑</div>
+      <div class="feature-title">Auto-updates</div>
+      <div class="feature-desc">New versions install automatically in the background. Always stay on the latest build.</div>
+    </div>
+  </div>
+</section>
+
+<!-- REQUIREMENTS -->
+<section class="requirements">
+  <p class="section-label">System requirements</p>
+  <h2 class="section-title" style="font-size:24px;margin-bottom:24px;">Minimum specifications</h2>
+  <div class="req-grid">
+    <div class="req-card">
+      <div class="req-platform req-win">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="0" y="0" width="6.5" height="6.5" rx="0.8" fill="currentColor"/>
+          <rect x="7.5" y="0" width="6.5" height="6.5" rx="0.8" fill="currentColor"/>
+          <rect x="0" y="7.5" width="6.5" height="6.5" rx="0.8" fill="currentColor"/>
+          <rect x="7.5" y="7.5" width="6.5" height="6.5" rx="0.8" fill="currentColor"/>
+        </svg>
+        Windows
+      </div>
+      <ul class="req-list">
+        <li>Windows 10 or 11 (64-bit)</li>
+        <li>4 GB RAM</li>
+        <li>200 MB disk space</li>
+        <li>Audio output device</li>
+      </ul>
+    </div>
+    <div class="req-card">
+      <div class="req-platform req-mac">
+        <svg width="13" height="14" viewBox="0 0 13 14" fill="none">
+          <path d="M10.5 7.4c0-1.9 1.6-2.8 1.6-2.8s-0.9-1.3-2.3-1.3c-1 0-1.9 0.6-2.4 0.6s-1.3-0.6-2.2-0.6C3.3 3.3 1.5 4.7 1.5 7.6c0 1.8 0.7 3.7 1.6 4.9 0.7 1 1.4 1.5 2.1 1.5 0.8 0 1.1-0.5 2.1-0.5 1 0 1.3 0.5 2.1 0.5 0.8 0 1.4-0.7 2-1.5 0.4-0.6 0.7-1.3 0.9-1.9 0 0-1.8-0.7-1.8-2.7z" fill="currentColor"/>
+          <path d="M8.8 1.8c0.6-0.7 1-1.6 0.9-2.5-0.9 0-1.9 0.6-2.5 1.3-0.5 0.6-1 1.5-0.8 2.4 0.9 0.1 1.8-0.5 2.4-1.2z" fill="currentColor"/>
+        </svg>
+        macOS
+      </div>
+      <ul class="req-list">
+        <li>macOS 12 Monterey or later</li>
+        <li>Intel or Apple Silicon (universal build)</li>
+        <li>4 GB RAM</li>
+        <li>200 MB disk space</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- MAC GATEKEEPER NOTE -->
+<div class="mac-note" style="padding: 0 48px; max-width: calc(1100px + 96px); margin: 0 auto 48px; width: 100%;">
+  <div style="background:rgba(168,216,168,0.06);border:1px solid rgba(168,216,168,0.15);border-radius:10px;padding:14px 20px;font-size:12px;color:rgba(168,216,168,0.65);display:flex;gap:10px;align-items:flex-start;width:100%;">
+    <span class="mac-note-icon">ⓘ</span>
+    <span><strong style="color:rgba(168,216,168,0.9)">macOS users:</strong> Acid Lab is currently unsigned. After downloading, right-click the .dmg and choose <strong style="color:rgba(168,216,168,0.9)">Open</strong> to bypass the Gatekeeper warning. You only need to do this once.</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 Acid Lab. Free to use.</span>
+  <div class="footer-links">
+    <a href="https://github.com/austenbags/bagio/releases" target="_blank">All releases</a>
+    <a href="https://github.com/austenbags/bagio" target="_blank">GitHub</a>
+  </div>
+</footer>
+
+<script>
+  const REPO        = 'austenbags/bagio';
+  const RELEASES    = `https://github.com/${REPO}/releases`;
+  const API         = `https://api.github.com/repos/${REPO}/releases/latest`;
+
+  const dlPrimary   = document.getElementById('dl-primary');
+  const dlWin       = document.getElementById('dl-win');
+  const dlMac       = document.getElementById('dl-mac');
+  const versionInfo = document.getElementById('version-info');
+  const badgeText   = document.getElementById('badge-text');
+
+  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform) || /Macintosh/.test(navigator.userAgent);
+
+  const SVG_WIN = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="0" y="0" width="6.5" height="6.5" rx="0.8" fill="white"/><rect x="7.5" y="0" width="6.5" height="6.5" rx="0.8" fill="white"/><rect x="0" y="7.5" width="6.5" height="6.5" rx="0.8" fill="white"/><rect x="7.5" y="7.5" width="6.5" height="6.5" rx="0.8" fill="white"/></svg>`;
+  const SVG_MAC = `<svg width="15" height="16" viewBox="0 0 13 14" fill="none"><path d="M10.5 7.4c0-1.9 1.6-2.8 1.6-2.8s-0.9-1.3-2.3-1.3c-1 0-1.9 0.6-2.4 0.6s-1.3-0.6-2.2-0.6C3.3 3.3 1.5 4.7 1.5 7.6c0 1.8 0.7 3.7 1.6 4.9 0.7 1 1.4 1.5 2.1 1.5 0.8 0 1.1-0.5 2.1-0.5 1 0 1.3 0.5 2.1 0.5 0.8 0 1.4-0.7 2-1.5 0.4-0.6 0.7-1.3 0.9-1.9 0 0-1.8-0.7-1.8-2.7z" fill="white"/><path d="M8.8 1.8c0.6-0.7 1-1.6 0.9-2.5-0.9 0-1.9 0.6-2.5 1.3-0.5 0.6-1 1.5-0.8 2.4 0.9 0.1 1.8-0.5 2.4-1.2z" fill="white"/></svg>`;
+
+  function mb(bytes) { return bytes ? ` – ${(bytes/1024/1024).toFixed(0)} MB` : ''; }
+
+  function render(winUrl, macUrl, ver, winMb, macMb) {
+    // Primary button — matches visitor's OS
+    const url   = isMac ? macUrl : winUrl;
+    const label = isMac ? `Download for macOS${macMb}` : `Download for Windows${winMb}`;
+    dlPrimary.href = url;
+    dlPrimary.classList.remove('loading');
+    dlPrimary.innerHTML = (isMac ? SVG_MAC : SVG_WIN) + `<span>${label}</span>`;
+
+    // Alt buttons
+    dlWin.href = winUrl;
+    dlMac.href = macUrl;
+    dlWin.classList.toggle('highlighted', !isMac);
+    dlMac.classList.toggle('highlighted',  isMac);
+
+    // Version line
+    badgeText.textContent = ver ? `${ver} — Free Download` : 'Free Download';
+    versionInfo.innerHTML = ver ? `<span>${ver}</span> &nbsp;·&nbsp; Windows &nbsp;·&nbsp; macOS` : '';
+  }
+
+  // Immediately show releases page as safe fallback — always navigable
+  render(RELEASES + '/latest', RELEASES + '/latest', '', '', '');
+  badgeText.textContent = 'Free Download';
+  versionInfo.textContent = 'Loading…';
+
+  // Fetch actual asset URLs from GitHub API
+  fetch(API)
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data => {
+      const ver    = data.tag_name || '';
+      const assets = data.assets   || [];
+      const winA   = assets.find(a => a.name.endsWith('.exe'));
+      const macA   = assets.find(a => a.name.endsWith('.dmg'));
+
+      const winUrl = winA ? winA.browser_download_url : RELEASES + '/latest';
+      const macUrl = macA ? macA.browser_download_url : RELEASES + '/latest';
+
+      render(winUrl, macUrl, ver, mb(winA?.size), mb(macA?.size));
+    })
+    .catch(() => {
+      // API unavailable — keep releases page links, just clean up the loading text
+      render(RELEASES + '/latest', RELEASES + '/latest', 'v1.0.38', '', '');
+    });
+</script>
+</body>
+</html>

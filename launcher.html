@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  background: #0c0d0a;
+  overflow: hidden;
+  -webkit-app-region: drag;
+  user-select: none;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.wrap {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px;
+  padding: 32px;
+}
+.logo {
+  font-size: 32px; font-weight: 700; letter-spacing: -0.5px;
+  color: #E86820;
+}
+.sub {
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(255,255,255,.18);
+  margin-top: -8px;
+}
+.status {
+  font-size: 11px; letter-spacing: .3px;
+  color: rgba(255,255,255,.35);
+  margin-top: 8px;
+  min-height: 16px;
+}
+.bar-wrap {
+  width: 260px; height: 2px;
+  background: rgba(255,255,255,.07);
+  border-radius: 99px; overflow: hidden;
+}
+.bar {
+  height: 100%; width: 0%;
+  background: #E86820;
+  border-radius: 99px;
+  transition: width .3s ease;
+  box-shadow: 0 0 10px rgba(232,104,32,.6);
+}
+.bar.indeterminate {
+  width: 35%;
+  animation: slide 1.4s ease-in-out infinite;
+}
+@keyframes slide {
+  0%   { margin-left: -35%; }
+  100% { margin-left: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">Acid Lab</div>
+  <div class="sub">music creation ecosystem</div>
+  <div class="status" id="status">Checking for updates…</div>
+  <div class="bar-wrap"><div class="bar indeterminate" id="bar"></div></div>
+</div>
+<script>
+window.electronLauncher.onStatus(({ state, percent, version }) => {
+  const s = document.getElementById('status');
+  const b = document.getElementById('bar');
+  if (state === 'none') {
+    s.textContent = 'Up to date';
+    b.classList.remove('indeterminate');
+    b.style.width = '100%';
+  } else if (state === 'available') {
+    s.textContent = 'Update found' + (version ? ' — v' + version : '') + '. Downloading…';
+    b.classList.remove('indeterminate');
+    b.style.width = '5%';
+  } else if (state === 'downloading') {
+    s.textContent = 'Downloading update… ' + percent + '%';
+    b.classList.remove('indeterminate');
+    b.style.width = percent + '%';
+  } else if (state === 'restarting') {
+    s.textContent = 'Update ready. Restarting…';
+    b.classList.remove('indeterminate');
+    b.style.width = '100%';
+  } else if (state === 'error') {
+    s.textContent = 'Could not check for updates';
+    b.classList.remove('indeterminate');
+    b.style.width = '0%';
+  }
+});
+</script>
+</body>
+</html>
