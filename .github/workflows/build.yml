@@ -9,31 +9,14 @@ on:
 permissions:
   contents: write
 
+# Windows is built and published locally by the Control Board.
+# This CI job only handles the macOS DMG — it runs after the Control Board
+# creates the release (which creates the tag, which triggers this workflow).
+
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    timeout-minutes: 30
-    steps:
-      - name: Get the code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build and publish the Windows app
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run publish
-
   build-macos:
     runs-on: macos-13
     timeout-minutes: 60
-    needs: build-windows
     steps:
       - name: Get the code
         uses: actions/checkout@v4
@@ -74,7 +57,6 @@ jobs:
           echo "Found: $DMG"
           DMG_NAME=$(basename "$DMG")
 
-          # Get upload URL for the release
           RELEASE_JSON=$(curl -sf \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
@@ -88,9 +70,7 @@ jobs:
           UPLOAD_URL=$(echo "$RELEASE_JSON" | python3 -c \
             "import sys,json; u=json.load(sys.stdin)['upload_url']; print(u.split('{')[0])")
 
-          echo "Upload URL: $UPLOAD_URL"
           echo "Uploading $DMG_NAME..."
-
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
