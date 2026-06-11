@@ -29,6 +29,96 @@
       "color": "rgba(255,255,255,.6)"
     },
     {
+      "text": "Panic button — stops all audio instantly. Click the red button in the transport bar or press Ctrl+.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Keyboard shortcuts panel — press ? anywhere to see all shortcuts.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Window position memory — app windows remember where you left them.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Undo / Redo for knobs — Ctrl+Z / Ctrl+Y undoes and redoes knob changes.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": " ",
+      "size": 8
+    },
+    {
+      "text": "QOL",
+      "size": 13,
+      "bold": true,
+      "color": "rgba(255,255,255,.9)"
+    },
+    {
+      "text": "Knob double-click resets to default value. Right-click to type a precise value.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Knob scroll: hold Shift for fine adjustment (÷5), Ctrl for coarse (×5).",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Value pill — current value shown in a floating pill while dragging any knob.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Arrow key control — click a knob then use ↑↓ to adjust. Shift+arrow for fine.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Zoom shortcuts — Ctrl+= / Ctrl+- / Ctrl+0 to zoom the workspace.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Ctrl+Shift+W closes all open windows. / key focuses app library search.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Middle-click a dock icon to spawn a new instance.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Unfocused windows dim to 85% opacity — focused window always stands out.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": " ",
+      "size": 8
+    },
+    {
+      "text": "Bug Fixes",
+      "size": 13,
+      "bold": true,
+      "color": "rgba(255,255,255,.9)"
+    },
+    {
+      "text": "Step Sequencer — SWING knob now has effect. Odd steps are delayed by the correct amount.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": "Animation loops in Tape, Sidechain, Glitch, Osc Bank, and Freq Shift no longer run after the window is closed.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
       "text": " ",
       "size": 8
     },
@@ -39,27 +129,7 @@
       "color": "rgba(255,255,255,.5)"
     },
     {
-      "text": "Multi-band Compressor — OUTPUT knob now correctly applied after all three bands.",
-      "size": 13,
-      "color": "rgba(255,255,255,.4)"
-    },
-    {
-      "text": "Glitch — FIRE RATE and grid cells now sync to the audio engine in real time.",
-      "size": 13,
-      "color": "rgba(255,255,255,.4)"
-    },
-    {
-      "text": "Distortion — drive pad now renders a grid and crosshair overlay.",
-      "size": 13,
-      "color": "rgba(255,255,255,.4)"
-    },
-    {
-      "text": "Update checker — status panel in Settings now displays checking, downloading, and error states correctly.",
-      "size": 13,
-      "color": "rgba(255,255,255,.4)"
-    },
-    {
-      "text": "macOS — Acid Lab is now available as a .dmg for Intel Macs (Rosetta 2 on Apple Silicon).",
+      "text": "Multi-band Compressor, Glitch, Distortion and Update Checker bug fixes. macOS build added.",
       "size": 13,
       "color": "rgba(255,255,255,.4)"
     }
