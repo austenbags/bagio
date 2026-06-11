@@ -139,6 +139,10 @@
   .titlebar img{width:20px;height:20px;margin-left:4px;border-radius:22%}
   .titlebar .tt{font-size:12px;letter-spacing:.5px;color:#d8d8da;flex:1;text-align:center;font-weight:600;text-transform:none;margin-right:54px}
   .tb-peak{width:28px;height:10px;border-radius:3px;overflow:hidden;opacity:0.7;flex-shrink:0;}
+  .win-pin-btn{background:transparent;border:none;color:rgba(255,255,255,.22);font-size:13px;cursor:pointer;padding:0 5px;transition:color .15s,transform .1s;flex-shrink:0;font-family:Arial,sans-serif;line-height:1;margin-left:2px}
+  .win-pin-btn:hover{color:rgba(255,255,255,.6);transform:scale(1.15)}
+  .win-pin-btn.active{color:#8899ff}
+  .win-pinned .titlebar{box-shadow:inset 0 -1px 0 rgba(136,153,255,.5)!important;}
   .wbody{padding:16px;overflow:auto;min-width:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent;background:rgba(255,255,255,.018);border-radius:0 0 12px 12px;}
   .wbody::-webkit-scrollbar{width:4px;}
   .wbody::-webkit-scrollbar-track{background:transparent;}
