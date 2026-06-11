@@ -145,7 +145,7 @@
   .titlebar img{width:20px;height:20px;margin-left:4px;border-radius:22%}
   .titlebar .tt{font-size:12px;letter-spacing:.5px;color:#d8d8da;flex:1;text-align:center;font-weight:600;text-transform:none;margin-right:54px}
   .tb-peak{width:28px;height:10px;border-radius:3px;overflow:hidden;opacity:0.7;flex-shrink:0;}
-  .wbody{padding:16px;overflow-y:auto;overflow-x:hidden;max-height:calc(90vh - 44px);min-width:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent;background:rgba(255,255,255,.018);border-radius:0 0 12px 12px;}
+  .wbody{padding:16px;overflow:auto;min-width:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent;background:rgba(255,255,255,.018);border-radius:0 0 12px 12px;}
   .wbody::-webkit-scrollbar{width:4px;}
   .wbody::-webkit-scrollbar-track{background:transparent;}
   .wbody::-webkit-scrollbar-thumb{background:rgba(255,255,255,.13);border-radius:2px;}

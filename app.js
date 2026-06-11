@@ -719,10 +719,12 @@ function _addMeterCanvas(win){
     const norm=Math.max(0,Math.min(1,(db+60)/60));
     const ctx2=cv.getContext('2d');
     const w=cv.width,h=cv.height;
-    const fill=norm>0.85?'#ff3333':norm>0.6?'#ffaa00':'rgba(232,104,32,0.9)';
     ctx2.clearRect(0,0,w,h);
-    ctx2.fillStyle='rgba(0,0,0,0.3)';ctx2.fillRect(0,0,w,h);
-    ctx2.fillStyle=fill;ctx2.fillRect(0,h*0.2,w*norm,h*0.6);
+    if(norm>0.005){
+      const fill=norm>0.85?'#ff4444':norm>0.6?'#ffaa00':'rgba(232,104,32,0.9)';
+      ctx2.fillStyle=fill;
+      ctx2.beginPath();ctx2.roundRect(0,h*0.2,w*norm,h*0.6,2);ctx2.fill();
+    }
   });
 })();
 
@@ -1518,6 +1520,7 @@ function restoreWinPos(win){
 }
 function openWindow(id, atWx, atWy){
   const win=document.getElementById(id);if(!win)return;
+  ensureAudio(); // guarantee audio buses exist before factory runs
   // Lazy-init factory UI on first open (handles windows whose HTML was added after first load)
   const baseId=id.replace(/-i\d+$/,'');
   if(APP_FACTORIES[baseId]){
@@ -4028,19 +4031,17 @@ APP_FACTORIES['win-vol'] = function setupVolUI(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='VOLUME';
   const faderRow=document.createElement('div');faderRow.style.cssText='display:flex;justify-content:center;padding:10px 0 4px;';
   const fader=makeVertFader({label:'GAIN',min:0,max:100,value:80,unit:'%',height:130,
     tip:'Volume level of the signal passing through.',
     onChange:v=>{const b=APP_BUSES[winId];if(b&&b._vol)b._vol.gain.setTargetAtTime(v/100,ac?ac.currentTime:0,0.01);}});
-  faderRow.appendChild(fader);sec.append(lbl,faderRow);ui.appendChild(sec);wb.appendChild(ui);
+  faderRow.appendChild(fader);sec.append(faderRow);ui.appendChild(sec);wb.appendChild(ui);
 };
 
 APP_FACTORIES['win-pan'] = function setupPanUI(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='STEREO PAN';
   // Arc canvas display
   const canvas=document.createElement('canvas');canvas.height=70;canvas.style.cssText='width:100%;display:block;margin-bottom:10px;cursor:pointer;border-radius:8px;';
   let panVal=0;
@@ -4066,7 +4067,7 @@ APP_FACTORIES['win-pan'] = function setupPanUI(win){
     tip:'Stereo panning — positions the signal in the stereo field',
     onChange:v=>{panVal=v;drawArc(v);const b=getB();if(b&&b._panner)b._panner.pan.setTargetAtTime(v/100,ac?ac.currentTime:0,0.01);}});
   canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect();const x=e.clientX-r.left;sl._update(Math.round(Math.max(-100,Math.min(100,(x/r.width)*200-100))));});
-  sec.append(lbl,canvas,sl);ui.appendChild(sec);wb.appendChild(ui);
+  sec.append(canvas,sl);ui.appendChild(sec);wb.appendChild(ui);
   document.addEventListener('workspace-zoom',()=>drawArc(panVal));
   new ResizeObserver(()=>{if(canvas.offsetWidth>0)drawArc(panVal);}).observe(canvas);
   drawArc(0);
@@ -4076,7 +4077,6 @@ APP_FACTORIES['win-chorus'] = function setupChorusUI(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='CHORUS';
   const getB=()=>APP_BUSES[winId]?._chorus;
   // Large rate knob is the creative heart; depth+wet as sliders; spread as stepper
   const kRate=makeKnob({label:'RATE',min:0.1,max:8,value:0.8,unit:' Hz',decimals:1,size:'lg',tip:'LFO rate — how fast the pitch wobbles. Slow is lush, fast is vibrato.',onChange:v=>{const b=getB();if(b){b.l1.frequency.value=v;b.l2.frequency.value=v*1.3;}}});
@@ -4085,14 +4085,13 @@ APP_FACTORIES['win-chorus'] = function setupChorusUI(win){
   const sWet=makeSlider({label:'WET',min:0,max:100,value:40,unit:'%',tip:'Wet mix — how much chorused signal is blended in.',onChange:v=>{const b=getB();if(b){b.w1.gain.value=v/100*0.5;b.w2.gain.value=v/100*0.5;b.dry.gain.value=1-v/100*0.6;}}});
   const SPREADS=[{label:'0 ms',value:0},{label:'5 ms',value:5},{label:'10 ms',value:10},{label:'20 ms',value:20},{label:'30 ms',value:30}];
   const spreadStep=makeStepper({label:'SPREAD',steps:SPREADS,index:2,tip:'Voice spread — stagger between the two chorus voices for wider stereo.',onChange:v=>{const b=getB();if(b){b.d1.delayTime.value=0.01+v/1000;b.d2.delayTime.value=0.01+v/1000*1.5;}}});
-  sec.append(lbl,rateRow,sDepth,sWet,spreadStep);ui.appendChild(sec);wb.appendChild(ui);
+  sec.append(rateRow,sDepth,sWet,spreadStep);ui.appendChild(sec);wb.appendChild(ui);
 };
 
 APP_FACTORIES['win-tremolo'] = function setupTremoloUI(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='TREMOLO';
   const getB=()=>APP_BUSES[winId]?._tremolo;
   // Animated rate indicator canvas + large rate knob
   const cvWrap=document.createElement('div');cvWrap.style.cssText='background:rgba(0,0,0,.3);border-radius:6px;padding:4px;margin-bottom:8px;';
@@ -4116,7 +4115,7 @@ APP_FACTORIES['win-tremolo'] = function setupTremoloUI(win){
   const l2=document.createElement('span');l2.className='app-section-lbl';l2.textContent='SHAPE';
   const wPicker=makeWavePicker({waves:['sine','square','triangle'],value:'sine',tip:'LFO shape — sine fades smoothly, square is abrupt, triangle is linear.',onChange:w=>{const b=getB();if(b)b.lfo.type=w;}});
   sec2.append(l2,wPicker);
-  sec.append(lbl,cvWrap,layout);ui.append(sec,sec2);wb.appendChild(ui);
+  sec.append(cvWrap,layout);ui.append(sec,sec2);wb.appendChild(ui);
   drawTrem();
 };
 
@@ -4124,7 +4123,6 @@ APP_FACTORIES['win-phaser'] = function setupPhaserUI(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='PHASER';
   const getB=()=>APP_BUSES[winId]?._phaser;
   // XY pad: X = center freq, Y = sweep range — the most expressive way to control a phaser
   const xyPad=makeXYPad({labelX:'CENTER',labelY:'SWEEP',minX:200,maxX:4000,minY:50,maxY:2000,valueX:800,valueY:600,
@@ -4134,7 +4132,7 @@ APP_FACTORIES['win-phaser'] = function setupPhaserUI(win){
   const RATES=[{label:'SLOW  0.05Hz',value:0.05},{label:'MED  0.5Hz',value:0.5},{label:'FAST  2Hz',value:2},{label:'SPIN  4Hz',value:4}];
   const rateStep=makeStepper({label:'RATE',steps:RATES,index:1,tip:'LFO speed — how fast the phase sweeps.',onChange:v=>{const b=getB();if(b)b.lfo.frequency.value=v;}});
   const sWet=makeSlider({label:'WET',min:0,max:100,value:50,unit:'%',tip:'How much phased signal is blended in.',onChange:v=>{const b=getB();if(b){b.wet.gain.value=v/100;b.dry.gain.value=1-v/200;}}});
-  sec.append(lbl,xyPad,rateStep,sWet);ui.appendChild(sec);wb.appendChild(ui);
+  sec.append(xyPad,rateStep,sWet);ui.appendChild(sec);wb.appendChild(ui);
 };
 
 // --- TONE factory
@@ -4383,7 +4381,6 @@ APP_FACTORIES['win-flanger'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='FLANGER';
   const getB=()=>APP_BUSES[winId]?._flanger;
   // Rate stepper (slow sweep values feel more natural than a knob)
   const RATES=[{label:'0.01 Hz',value:0.01},{label:'0.1 Hz',value:0.1},{label:'0.3 Hz',value:0.3},{label:'1 Hz',value:1},{label:'5 Hz',value:5}];
@@ -4397,7 +4394,7 @@ APP_FACTORIES['win-flanger'] = function(win){
   const wlbl=document.createElement('span');wlbl.className='acid-section-label';wlbl.textContent='LFO SHAPE';
   const wavePicker=makeWavePicker({waves:['sine','triangle','square','sawtooth'],value:'sine',tip:'LFO waveform shape — changes the character of the sweep.',onChange:w=>{const b=getB();if(b)b.lfo.type=w;}});
   secWave.append(wlbl,wavePicker);
-  sec.append(lbl,rateStep,kRow,sDepth,sMix);ui.append(sec,secWave);wb.appendChild(ui);
+  sec.append(rateStep,kRow,sDepth,sMix);ui.append(sec,secWave);wb.appendChild(ui);
 };
 
 // --- RING MOD factory
@@ -4724,7 +4721,6 @@ APP_FACTORIES['win-bitcrush'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='BIT CRUSHER';
   const cvWrap=document.createElement('div');cvWrap.style.cssText='background:#050c03;border-radius:6px;padding:4px;margin-bottom:8px;';
   const canvas=document.createElement('canvas');canvas.height=48;canvas.style.cssText='width:100%;display:block;border-radius:4px;';cvWrap.appendChild(canvas);
   let bits=16;
@@ -4742,7 +4738,7 @@ APP_FACTORIES['win-bitcrush'] = function(win){
   const getB=()=>APP_BUSES[winId]?._bc;
   const bitStep=makeStepper({label:'BIT DEPTH',steps:BIT_STEPS,index:6,tip:'Bit depth — fewer bits creates harsh digital quantisation noise. 4-bit is severe crunch, 16-bit is clean.',onChange:v=>{bits=v;drawCrush();const b=getB();if(b)b.wsh.curve=b.makeBitCurve(v);}});
   const sCrush=makeSlider({label:'CRUSH',min:0,max:100,value:0,unit:'%',tip:'Crush intensity — additional harmonic distortion layered after bit reduction.',onChange:()=>{drawCrush();}});
-  sec.append(lbl,cvWrap,bitStep,sCrush);ui.appendChild(sec);wb.appendChild(ui);
+  sec.append(cvWrap,bitStep,sCrush);ui.appendChild(sec);wb.appendChild(ui);
   document.addEventListener('workspace-zoom',drawCrush);new ResizeObserver(()=>{if(canvas.offsetWidth>0)drawCrush();}).observe(canvas);
   drawCrush();
 };
@@ -4752,7 +4748,6 @@ APP_FACTORIES['win-cabinet'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='CABINET SIM';
   const CABS={Clean:{lo:0,mid:0,hi:0,midF:1000,Q:0.8},Vintage:{lo:2,mid:3,hi:-4,midF:800,Q:1.2},Crunch:{lo:1,mid:6,hi:-8,midF:1200,Q:1.8},Heavy:{lo:4,mid:-2,hi:-12,midF:600,Q:2.2}};
   const CAB_TIPS={Clean:'Flat, transparent response — no cabinet colouring',Vintage:'Warm mid-forward tone, 1960s open-back combo',Crunch:'Aggressive midrange bite, driven closed-back 4×12',Heavy:'Scooped bass-heavy response, high-gain metal cabinet'};
   let selCab='Clean';
@@ -4799,7 +4794,7 @@ APP_FACTORIES['win-cabinet'] = function(win){
     ctx.stroke();
     ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
   }
-  sec.append(lbl,typeRow,cvWrap,ctrlRow);
+  sec.append(typeRow,cvWrap,ctrlRow);
   ui.appendChild(sec);wb.appendChild(ui);
   document.addEventListener('workspace-zoom',drawResp);
   new ResizeObserver(()=>{if(canvas.offsetWidth>0)drawResp();}).observe(canvas);
@@ -4811,7 +4806,6 @@ APP_FACTORIES['win-stereoimg'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='STEREO IMAGER';
   let widthVal=100;
   const cvWrap=document.createElement('div');cvWrap.style.cssText='background:#040e06;border-radius:6px;padding:6px 8px;margin-bottom:10px;';
   const canvas=document.createElement('canvas');canvas.height=40;canvas.style.cssText='width:100%;display:block;border-radius:3px;';cvWrap.appendChild(canvas);
@@ -4853,7 +4847,7 @@ APP_FACTORIES['win-stereoimg'] = function(win){
       b._bassLP=null;
     }
   }});
-  sec.append(lbl,cvWrap,widthSlider,monoToggle);ui.appendChild(sec);wb.appendChild(ui);
+  sec.append(cvWrap,widthSlider,monoToggle);ui.appendChild(sec);wb.appendChild(ui);
   document.addEventListener('workspace-zoom',drawMeter);new ResizeObserver(()=>{if(canvas.offsetWidth>0)drawMeter();}).observe(canvas);
   drawMeter();
 };
@@ -4863,7 +4857,6 @@ APP_FACTORIES['win-comb'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');wb.innerHTML='';
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const lbl=document.createElement('span');lbl.className='acid-section-label';lbl.textContent='COMB FILTER';
   let combFreq=100,combFb=0.5;
   const cvWrap=document.createElement('div');cvWrap.style.cssText='background:#05040e;border-radius:6px;padding:4px;margin-bottom:8px;';
   const canvas=document.createElement('canvas');canvas.height=48;canvas.style.cssText='width:100%;display:block;border-radius:4px;';cvWrap.appendChild(canvas);
@@ -4882,7 +4875,7 @@ APP_FACTORIES['win-comb'] = function(win){
   const kFb=makeKnob({label:'FEEDBACK',min:0,max:90,value:50,unit:'%',size:'lg',tip:'Resonance — higher values create sharper, more metallic ringing peaks.',onChange:v=>{combFb=v/100;drawComb();const b=getB();if(b)b.fb.gain.value=v/100;}});
   layout.append(freqDrag,kFb);
   const sMix=makeSlider({label:'MIX',min:0,max:100,value:40,unit:'%',tip:'Dry/wet blend.',onChange:v=>{const b=getB();if(b){b.wet.gain.value=v/100;b.dry.gain.value=1-v/100*0.5;}}});
-  sec.append(lbl,cvWrap,layout,sMix);ui.appendChild(sec);wb.appendChild(ui);
+  sec.append(cvWrap,layout,sMix);ui.appendChild(sec);wb.appendChild(ui);
   document.addEventListener('workspace-zoom',drawComb);new ResizeObserver(()=>{if(canvas.offsetWidth>0)drawComb();}).observe(canvas);drawComb();
 };
 
@@ -4893,7 +4886,7 @@ APP_FACTORIES['win-distortion'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='DISTORTION';
+
 
   // Drive pad: X = tone, Y = drive
   const pad=document.createElement('div');pad.className='acid-drive-pad';
@@ -4977,7 +4970,7 @@ APP_FACTORIES['win-distortion'] = function(win){
   const kLevel=makeKnob({label:'OUTPUT',min:0,max:100,value:80,unit:'%',size:'md',tip:'Output gain after distortion.',onChange:v=>{const b=APP_BUSES[winId]?._dist;if(b)b.level.gain.value=v/100;}});
   const sMix=makeSlider({label:'MIX',min:0,max:100,value:100,unit:'%',tip:'Dry/wet blend.',onChange:v=>{const b=APP_BUSES[winId]?._dist;if(b){b.wetMix.gain.value=v/100;b.dryMix.gain.value=1-v/100;}}});
   row.append(kLevel,sMix);
-  sec.append(hdr,pad,cvWrap,modeRow,row);
+  sec.append(pad,cvWrap,modeRow,row);
   ui.appendChild(sec);wb.appendChild(ui);
   applyDist();
   new ResizeObserver(drawWaveCurve).observe(cvWrap);
@@ -4993,8 +4986,6 @@ APP_FACTORIES['win-multicomp'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='MULTI-BAND COMP';
-
   // Crossover canvas — drag the dividers
   const cvWrap=document.createElement('div');cvWrap.style.cssText='width:100%;height:80px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07);margin-bottom:10px;position:relative;cursor:ew-resize;user-select:none;overflow:hidden;';
   const cv=document.createElement('canvas');cv.style.cssText='width:100%;height:100%;display:block;';
@@ -5075,7 +5066,7 @@ APP_FACTORIES['win-multicomp'] = function(win){
   const masterRow=document.createElement('div');masterRow.style.cssText='display:flex;gap:10px;align-items:center;';
   const kMaster=makeKnob({label:'OUTPUT',min:0,max:100,value:80,unit:'%',size:'sm',tip:'Master output level.',onChange:v=>{const b=APP_BUSES[winId]?._mc;if(b)b.master.gain.value=v/100;}});
   masterRow.appendChild(kMaster);
-  sec.append(hdr,cvWrap,bands,masterRow);
+  sec.append(cvWrap,bands,masterRow);
   ui.appendChild(sec);wb.appendChild(ui);
   new ResizeObserver(drawXO).observe(cvWrap);
   (function loop(){requestAnimationFrame(loop);drawXO();})();
@@ -5088,8 +5079,6 @@ APP_FACTORIES['win-wavetable'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='WAVETABLE SYNTH';
-
   // Morph strip — 8 waveform thumbnails + draggable cursor
   const morphSec=document.createElement('div');morphSec.className='acid-section';
   const mhdr=document.createElement('div');mhdr.className='acid-section-label';mhdr.textContent='WAVEFORM MORPH';
@@ -5180,8 +5169,7 @@ APP_FACTORIES['win-wavetable'] = function(win){
   });
   kbSec.append(kbHdr,octStepper,kbRow);
 
-  sec.append(hdr);
-  ui.append(sec,morphSec,oscSec,kbSec);
+  ui.append(morphSec,oscSec,kbSec);
   wb.appendChild(ui);
 };
 
@@ -5192,7 +5180,6 @@ APP_FACTORIES['win-stepseq'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='STEP SEQUENCER';
 
   const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
   const SCALES={
@@ -5266,29 +5253,29 @@ APP_FACTORIES['win-stepseq'] = function(win){
   const kGate=makeKnob({label:'GATE',min:5,max:200,value:90,unit:'%',size:'sm',tip:'Note gate length as % of step.'});
   paramRow.append(kSwing,kProb,kGate);
 
-  // Transport step hook
-  const seqD=APP_BUSES[winId]?._seq;
-  if(seqD){
-    window.__prScheduleStep=(function(orig){
-      return function(step,time){
-        if(orig)orig(step,time);
-        const s=stepData[step%16];
-        // apply swing: delay odd steps by a fraction of the step duration
-        const swingMs=(step%2===1)?(60/tempo/4)*1000*(kSwing._val()/100)*0.5:0;
-        if(s&&s.active&&Math.random()<s.prob){
-          const freq=440*Math.pow(2,(s.note-69)/12);
-          const bWT=APP_BUSES['win-wavetable']?._wt;
-          if(bWT){
-            const gateDur=Math.max(50,(60/tempo/4)*(kGate._val()/100)*1000);
-            setTimeout(()=>{bWT.playNote(freq,s.vel);setTimeout(()=>bWT.stopNote(freq),gateDur);},swingMs);
-          }
+  // Transport step hook — always install regardless of audio state
+  window.__prScheduleStep=(function(orig){
+    return function(step,time){
+      if(orig)orig(step,time);
+      const s=stepData[step%16];
+      const stepSec=(60/tempo)/4;
+      const swingMs=(step%2===1)?stepSec*1000*(kSwing._val()/100)*0.5:0;
+      if(s&&s.active&&Math.random()<s.prob){
+        const gateDur=Math.max(0.05,stepSec*(kGate._val()/100)*0.95);
+        const bWT=APP_BUSES['win-wavetable']?._wt;
+        if(bWT){
+          setTimeout(()=>{bWT.playNote(440*Math.pow(2,(s.note-69)/12),s.vel);setTimeout(()=>bWT.stopNote(440*Math.pow(2,(s.note-69)/12)),gateDur*1000);},swingMs);
+        } else {
+          // fallback: use poly synth
+          const tAt=time+swingMs/1000;
+          triggerPoly([s.note],tAt,gateDur);
         }
-        bars.forEach((b,i)=>b.classList.toggle('active-step',i===step%16));
-      };
-    })(window.__prScheduleStep);
-  }
+      }
+      bars.forEach((b,i)=>b.classList.toggle('active-step',i===step%16));
+    };
+  })(window.__prScheduleStep);
 
-  sec.append(hdr,ctrlRow,velWrap,noteRow,paramRow);
+  sec.append(ctrlRow,velWrap,noteRow,paramRow);
   ui.append(sec);wb.appendChild(ui);
 };
 
@@ -5299,8 +5286,6 @@ APP_FACTORIES['win-tape'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='TAPE MACHINE';
-
   // Reel canvas
   const reelWrap=document.createElement('div');reelWrap.style.cssText='width:100%;height:90px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(210,160,60,.15);margin-bottom:10px;overflow:hidden;position:relative;';
   const reelCv=document.createElement('canvas');reelCv.style.cssText='width:100%;height:100%;';
@@ -5361,7 +5346,7 @@ APP_FACTORIES['win-tape'] = function(win){
   detailCol.append(detailRow,sBias);
   ageSec.append(kAge,detailCol);
 
-  sec.append(hdr,reelWrap,ageSec);
+  sec.append(reelWrap,ageSec);
   ui.appendChild(sec);wb.appendChild(ui);
 };
 
@@ -5372,7 +5357,7 @@ APP_FACTORIES['win-formant'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='VOWEL FILTER';
+
 
   // Vowel positions (normalised 0-1 x,y in the pad)
   const VOWELS={A:{x:.18,y:.82},E:{x:.35,y:.32},I:{x:.72,y:.22},O:{x:.70,y:.72},U:{x:.55,y:.88}};
@@ -5436,7 +5421,7 @@ APP_FACTORIES['win-formant'] = function(win){
   const sMix=makeSlider({label:'MIX',min:0,max:100,value:70,unit:'%',tip:'Dry/wet blend.',onChange:v=>{const b=APP_BUSES[winId]?._formant;if(b)b.setMix(v/100);}});
   paramRow.append(kQ,sMix);
 
-  sec.append(hdr,padWrap,paramRow);
+  sec.append(padWrap,paramRow);
   ui.appendChild(sec);wb.appendChild(ui);
   new ResizeObserver(drawPadBg).observe(padWrap);
   drawPadBg();
@@ -5450,7 +5435,7 @@ APP_FACTORIES['win-sidechain'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='SIDECHAIN COMP';
+
 
   // Pumping visualizer canvas
   const cvWrap=document.createElement('div');cvWrap.style.cssText='width:100%;height:70px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(50,220,130,.15);margin-bottom:10px;overflow:hidden;position:relative;';
@@ -5494,7 +5479,7 @@ APP_FACTORIES['win-sidechain'] = function(win){
   paramCol.append(thrND,ratioStep,atkStep,relStep);
   row.append(paramCol,kDepth);
 
-  sec.append(hdr,cvWrap,row);
+  sec.append(cvWrap,row);
   ui.appendChild(sec);wb.appendChild(ui);
 };
 
@@ -5505,7 +5490,7 @@ APP_FACTORIES['win-glitch'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='GLITCH';
+
 
   // Pattern grid — 2 rows × 8 columns
   const gridWrap=document.createElement('div');gridWrap.style.cssText='margin-bottom:8px;';
@@ -5565,7 +5550,7 @@ APP_FACTORIES['win-glitch'] = function(win){
   }
   (function loop(){if(!win.isConnected)return;requestAnimationFrame(loop);drawGlitch();})();
 
-  sec.append(hdr,wvWrap,gridWrap,ctrlRow);
+  sec.append(wvWrap,gridWrap,ctrlRow);
   ui.appendChild(sec);wb.appendChild(ui);
 };
 
@@ -5576,7 +5561,7 @@ APP_FACTORIES['win-osc-bank'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='OSCILLATOR BANK';
+
 
   // Waveform preview canvas
   const wvWrap=document.createElement('div');wvWrap.style.cssText='width:100%;height:60px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(40,200,200,.15);margin-bottom:8px;overflow:hidden;';
@@ -5633,7 +5618,7 @@ APP_FACTORIES['win-osc-bank'] = function(win){
   pRow.append(fundND,kMaster);
   paramSec.append(pHdr,pRow);
 
-  sec.append(hdr,wvWrap);
+  sec.append(wvWrap);
   ui.append(sec,drawbarSec,paramSec);
   wb.appendChild(ui);
   // Sync visual defaults to audio on first open
@@ -5650,7 +5635,7 @@ APP_FACTORIES['win-freqshift'] = function(win){
   const winId=win.id,wb=win.querySelector('.wbody');
   const ui=document.createElement('div');ui.className='acid-app-ui';
   const sec=document.createElement('div');sec.className='acid-section';
-  const hdr=document.createElement('div');hdr.className='acid-section-label';hdr.textContent='FREQ SHIFTER';
+
 
   // Sideband visualizer canvas
   const cvWrap=document.createElement('div');cvWrap.style.cssText='width:100%;height:90px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(0,220,180,.15);margin-bottom:10px;overflow:hidden;';
@@ -5700,7 +5685,7 @@ APP_FACTORIES['win-freqshift'] = function(win){
   const sMix=makeSlider({label:'MIX',min:0,max:100,value:100,unit:'%',tip:'Dry/wet blend.',onChange:v=>{const b=APP_BUSES[winId]?._fs;if(b)b.setMix(v/100);}});
   paramRow.append(kFine,sMix);
 
-  sec.append(hdr,cvWrap,shiftND,paramRow);
+  sec.append(cvWrap,shiftND,paramRow);
   ui.appendChild(sec);wb.appendChild(ui);
   new ResizeObserver(drawSidebands).observe(cvWrap);
 };
