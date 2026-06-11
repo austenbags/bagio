@@ -1,9 +1,9 @@
 {
-  "version": "1.0.40",
+  "version": "1.0.41",
   "date": "{{DATE}}",
   "blocks": [
     {
-      "text": "Acid Lab — v1.0.40",
+      "text": "Acid Lab — v1.0.41",
       "size": 26,
       "bold": true,
       "color": "#E86820"
@@ -18,28 +18,28 @@
       "size": 8
     },
     {
-      "text": "New",
+      "text": "Bug Fixes",
       "size": 13,
       "bold": true,
       "color": "rgba(255,255,255,.9)"
     },
     {
-      "text": "Peak meters in every app titlebar — tiny level indicator shows signal activity at a glance.",
+      "text": "Glitch, Step Sequencer, and Oscillator Bank now work immediately on open — audio context is now guaranteed ready before any app factory runs.",
       "size": 13,
       "color": "rgba(255,255,255,.6)"
     },
     {
-      "text": "Wire colours by signal type — audio wires are orange, CV/mod wires are blue, MIDI wires are green.",
+      "text": "Step Sequencer now falls back to the Poly Synth when Wavetable Synth is not open, so it works standalone.",
       "size": 13,
       "color": "rgba(255,255,255,.6)"
     },
     {
-      "text": "Workspace right-click menu — tile, cascade, lock, or close all windows from the background.",
+      "text": "App content is no longer clipped — removed overflow restriction that was cutting controls at the edge of windows.",
       "size": 13,
       "color": "rgba(255,255,255,.6)"
     },
     {
-      "text": "Lock workspace — prevents accidental window moves and resizes. Toggle via right-click menu.",
+      "text": "Peak meter no longer shows a dark rectangle when the signal is silent — the bar only appears when audio is playing.",
       "size": 13,
       "color": "rgba(255,255,255,.6)"
     },
@@ -48,30 +48,30 @@
       "size": 8
     },
     {
-      "text": "Previous — v1.0.39",
+      "text": "Polish",
+      "size": 13,
+      "bold": true,
+      "color": "rgba(255,255,255,.9)"
+    },
+    {
+      "text": "Removed redundant app name labels from inside every app — the titlebar already shows the name.",
+      "size": 13,
+      "color": "rgba(255,255,255,.6)"
+    },
+    {
+      "text": " ",
+      "size": 8
+    },
+    {
+      "text": "Previous — v1.0.40",
       "size": 13,
       "bold": true,
       "color": "rgba(255,255,255,.5)"
     },
     {
-      "text": "New app icon, panic button, shortcuts panel, window position memory, undo/redo, knob reset, value pills, tap tempo, mute, accent colours per instance, zoom shortcuts, hint mode, swing fix, rAF loop fixes.",
+      "text": "Peak meters in titlebars, wire colors by signal type, workspace right-click menu, lock workspace.",
       "size": 13,
       "color": "rgba(255,255,255,.4)"
-    },
-    {
-      "text": " ",
-      "size": 8
-    },
-    {
-      "text": "Previous — v1.0.38",
-      "size": 13,
-      "bold": true,
-      "color": "rgba(255,255,255,.4)"
-    },
-    {
-      "text": "Multi-band Compressor, Glitch, Distortion and Update Checker bug fixes. macOS build added.",
-      "size": 13,
-      "color": "rgba(255,255,255,.35)"
     }
   ]
 }
