@@ -2813,6 +2813,56 @@ document.addEventListener('mouseup', () => {
   }
 });
 
+// ===== WORKSPACE RIGHT-CLICK CONTEXT MENU =====
+let _wsLocked=false;
+(function(){
+  const menu=document.createElement('div');menu.id='ws-ctx-menu';
+  menu.innerHTML=`<div class="ws-ctx-item" data-action="tile">Tile windows</div><div class="ws-ctx-item" data-action="cascade">Cascade windows</div><div class="ws-ctx-sep"></div><div class="ws-ctx-item" data-action="lock" id="ws-ctx-lock">Lock workspace</div><div class="ws-ctx-sep"></div><div class="ws-ctx-item" data-action="closeall">Close all windows</div>`;
+  document.body.appendChild(menu);
+  function hide(){menu.style.display='none';}
+  document.addEventListener('contextmenu',e=>{
+    if(e.target.closest('.window')||e.target.closest('#dock')||e.target.closest('#topbar')||e.target.closest('#dock-library')||e.target.closest('#ws-ctx-menu'))return;
+    e.preventDefault();
+    menu.style.display='block';
+    const mx=Math.min(e.clientX,window.innerWidth-menu.offsetWidth-8);
+    const my=Math.min(e.clientY,window.innerHeight-menu.offsetHeight-8);
+    menu.style.left=mx+'px';menu.style.top=my+'px';
+  });
+  document.addEventListener('pointerdown',e=>{if(!e.target.closest('#ws-ctx-menu'))hide();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});
+  menu.addEventListener('click',e=>{
+    const item=e.target.closest('.ws-ctx-item');if(!item)return;
+    const action=item.dataset.action;hide();
+    const wins=[...document.querySelectorAll('.window.open:not(.maxd)')];
+    if(action==='tile'){
+      const cols=Math.ceil(Math.sqrt(wins.length))||1;
+      const tw=Math.max(280,(window.innerWidth-80)/(cols*wsZoom));
+      const th=Math.max(200,(window.innerHeight-120)/(Math.ceil(wins.length/cols)*wsZoom));
+      wins.forEach((w,i)=>{
+        const col=i%cols,row=Math.floor(i/cols);
+        const sx=40+col*(tw*wsZoom+8),sy=80+row*(th*wsZoom+8);
+        w.dataset.wx=(sx-wsPanX)/wsZoom;w.dataset.wy=(sy-wsPanY)/wsZoom;
+        w.style.left=sx+'px';w.style.top=sy+'px';
+        saveWinPos(w);
+      });
+    } else if(action==='cascade'){
+      wins.forEach((w,i)=>{
+        const sx=60+i*30,sy=80+i*30;
+        w.dataset.wx=(sx-wsPanX)/wsZoom;w.dataset.wy=(sy-wsPanY)/wsZoom;
+        w.style.left=sx+'px';w.style.top=sy+'px';
+        saveWinPos(w);
+      });
+    } else if(action==='lock'){
+      _wsLocked=!_wsLocked;
+      document.getElementById('ws-ctx-lock').textContent=_wsLocked?'Unlock workspace':'Lock workspace';
+      document.body.classList.toggle('ws-locked',_wsLocked);
+    } else if(action==='closeall'){
+      wins.forEach(w=>{try{closeWindow(w.id);}catch(_){}});
+    }
+    if(typeof redrawWires==='function')redrawWires();
+  });
+})();
+
 /* =====================================================
    PORT + WIRE SYSTEM
    ===================================================== */
@@ -3363,7 +3413,7 @@ function initWindowFrame(win){
       else{selectedWindows.add(win.id);win.classList.add('win-selected');}
       return;
     }
-    if(win.classList.contains('maxd'))return;
+    if(win.classList.contains('maxd')||_wsLocked)return;
     const r=win.getBoundingClientRect();
     drag={dx:e.clientX-r.left,dy:e.clientY-r.top};
     win.classList.add('dragging');

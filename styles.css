@@ -854,6 +854,12 @@ body.hint-mode{cursor:help;}
    ===================================================== */
 #zoom-indicator{position:fixed;bottom:108px;right:18px;z-index:300;background:rgba(20,18,14,.8);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 10px;font-size:10px;color:rgba(255,255,255,.55);letter-spacing:1px;pointer-events:none;opacity:0;transition:opacity .3s;}
 #zoom-indicator.visible{opacity:1;}
+#ws-ctx-menu{display:none;position:fixed;z-index:9000;background:rgba(20,18,14,.96);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:5px 0;min-width:170px;box-shadow:0 8px 28px rgba(0,0,0,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+.ws-ctx-item{padding:8px 18px;font-size:12px;color:rgba(255,255,255,.8);cursor:pointer;white-space:nowrap;}
+.ws-ctx-item:hover{background:rgba(232,104,32,.18);color:#fff;}
+.ws-ctx-sep{height:1px;margin:4px 0;background:rgba(255,255,255,.1);}
+body.ws-locked .titlebar{cursor:default!important;}
+body.ws-locked .resize-grip{display:none!important;}
 
 /* =====================================================
    HOTBAR SHAKE
