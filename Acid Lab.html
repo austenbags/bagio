@@ -604,8 +604,8 @@
       render(winUrl, macUrl, ver, mb(winA?.size), mb(macA?.size));
     })
     .catch(() => {
-      // API unavailable — keep releases page links, just clean up the loading text
-      render(RELEASES + '/latest', RELEASES + '/latest', 'v1.0.38', '', '');
+      render(RELEASES + '/latest', RELEASES + '/latest', '', '', '');
+      versionInfo.innerHTML = `<a href="${RELEASES}" style="color:inherit">See all releases →</a>`;
     });
 </script>
 </body>
