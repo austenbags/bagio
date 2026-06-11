@@ -64,7 +64,8 @@
       "icon": "icon.png",
       "category": "public.app-category.music",
       "hardenedRuntime": false,
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "identity": null
     },
     "dmg": {
       "title": "Acid Lab",

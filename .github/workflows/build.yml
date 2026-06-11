@@ -33,6 +33,7 @@ jobs:
   build-macos:
     runs-on: macos-latest
     timeout-minutes: 45
+    needs: build-windows
     steps:
       - name: Get the code
         uses: actions/checkout@v4
@@ -45,11 +46,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build and publish the macOS app
+      - name: Build macOS DMG (unsigned)
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
           CSC_LINK: ""
           CSC_KEY_PASSWORD: ""
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
-        run: npm run publish-mac
+        run: npm run build-mac
+
+      - name: Upload DMG to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          DMG=$(ls dist/*.dmg 2>/dev/null | head -1)
+          if [ -n "$DMG" ]; then
+            gh release upload "v${VERSION}" "$DMG" --clobber --repo ${{ github.repository }}
+          else
+            echo "No DMG found in dist/"
+            ls dist/ || true
+            exit 1
+          fi
