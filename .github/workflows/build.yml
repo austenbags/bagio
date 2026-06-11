@@ -31,8 +31,8 @@ jobs:
         run: npm run publish
 
   build-macos:
-    runs-on: macos-latest
-    timeout-minutes: 45
+    runs-on: macos-13
+    timeout-minutes: 60
     needs: build-windows
     steps:
       - name: Get the code
@@ -46,11 +46,29 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build and publish macOS DMG
+      - name: Build macOS DMG (unsigned, x64)
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
           CSC_LINK: ""
           CSC_KEY_PASSWORD: ""
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
-        run: npm run publish-mac
+        run: npm run build-mac
+
+      - name: Upload DMG to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "Version: $VERSION"
+          echo "Contents of dist/:"
+          ls -la dist/ 2>/dev/null || echo "(dist/ is empty or missing)"
+          DMG=$(ls dist/*.dmg 2>/dev/null | head -1)
+          if [ -n "$DMG" ]; then
+            echo "Uploading: $DMG"
+            gh release upload "v${VERSION}" "$DMG" --clobber --repo "${{ github.repository }}"
+            echo "Upload complete"
+          else
+            echo "ERROR: No .dmg found in dist/"
+            exit 1
+          fi
