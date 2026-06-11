@@ -1,35 +1,49 @@
 name: Build BAGIO
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 permissions:
   contents: write
 
-# Windows is built and published locally by the Control Board.
-# This CI job only handles the macOS DMG — it runs after the Control Board
-# creates the release (which creates the tag, which triggers this workflow).
-
 jobs:
-  build-macos:
-    runs-on: macos-13
-    timeout-minutes: 60
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
     steps:
-      - name: Get the code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install
         run: npm install
 
-      - name: Build macOS DMG (unsigned, x64)
+      - name: Build + publish Windows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run publish
+
+  build-macos:
+    runs-on: macos-13
+    timeout-minutes: 60
+    needs: build-windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install
+        run: npm install
+
+      - name: Build macOS DMG
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           CSC_LINK: ""
@@ -37,51 +51,30 @@ jobs:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
         run: npm run build-mac
 
-      - name: Show dist contents
+      - name: Show dist/
         if: always()
-        run: |
-          echo "=== dist/ contents ==="
-          find dist/ -type f 2>/dev/null || echo "(dist/ is empty or missing)"
+        run: find dist/ -type f 2>/dev/null || echo "(empty)"
 
-      - name: Upload DMG to GitHub Release
+      - name: Upload DMG
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(node -e "console.log(require('./package.json').version)")
-          echo "Looking for DMG for v${VERSION}..."
-          DMG=$(find dist/ -name "*.dmg" 2>/dev/null | head -1)
-          if [ -z "$DMG" ]; then
-            echo "ERROR: No .dmg found in dist/"
-            exit 1
-          fi
-          echo "Found: $DMG"
-          DMG_NAME=$(basename "$DMG")
-
-          RELEASE_JSON=$(curl -sf \
+          DMG=$(find dist/ -name "*.dmg" | head -1)
+          if [ -z "$DMG" ]; then echo "ERROR: no DMG in dist/"; exit 1; fi
+          echo "Uploading $(basename $DMG) for v${VERSION}"
+          UPLOAD_URL=$(curl -sf \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}")
-
-          if [ -z "$RELEASE_JSON" ]; then
-            echo "ERROR: Could not find release v${VERSION} on GitHub"
-            exit 1
-          fi
-
-          UPLOAD_URL=$(echo "$RELEASE_JSON" | python3 -c \
-            "import sys,json; u=json.load(sys.stdin)['upload_url']; print(u.split('{')[0])")
-
-          echo "Uploading $DMG_NAME..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" | \
+            python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+          if [ -z "$UPLOAD_URL" ]; then echo "ERROR: release not found for v${VERSION}"; exit 1; fi
+          STATUS=$(curl -s -o /tmp/upload_resp.json -w "%{http_code}" \
             -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @"$DMG" \
-            "${UPLOAD_URL}?name=${DMG_NAME}")
-
-          echo "Upload HTTP status: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" = "201" ] || [ "$HTTP_STATUS" = "200" ]; then
-            echo "✓ DMG uploaded successfully"
-          else
-            echo "ERROR: Upload failed with HTTP $HTTP_STATUS"
-            exit 1
-          fi
+            "${UPLOAD_URL}?name=$(basename $DMG)")
+          echo "HTTP $STATUS"
+          cat /tmp/upload_resp.json
+          [ "$STATUS" = "201" ] && echo "✓ DMG uploaded" || exit 1
