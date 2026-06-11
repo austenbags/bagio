@@ -934,40 +934,16 @@ const playBtn=document.getElementById("playBtn");
 playBtn.addEventListener("click",()=>{ensureAudio();if(ac.state==="suspended")ac.resume();
   if(!isPlaying){isPlaying=true;currentStep=0;songPos=0;nextNoteTime=ac.currentTime+0.06;playStartTime=nextNoteTime;prevAcidFreq=null;playBtn.classList.add("on");scheduler();}
   else{isPlaying=false;clearTimeout(timerID);playBtn.classList.remove("on");paintPlayhead(-1);}});
-// Tap tempo
-(function(){
-  let _taps=[],_tapTimer=null;
-  document.getElementById('tapTempoBtn')?.addEventListener('click',()=>{
-    const now=performance.now();
-    _taps.push(now);
-    clearTimeout(_tapTimer);
-    _tapTimer=setTimeout(()=>{_taps=[];},2500);
-    if(_taps.length>1){
-      const intervals=_taps.slice(1).map((t,i)=>t-_taps[i]);
-      const avg=intervals.reduce((a,b)=>a+b,0)/intervals.length;
-      const bpm=Math.round(60000/avg);
-      const clamped=Math.max(40,Math.min(250,bpm));
-      tempo=clamped;
-      const bpmEl=document.getElementById('bpm');
-      if(bpmEl){bpmEl.value=clamped;bpmEl.dispatchEvent(new Event('input'));}
-    }
-    if(_taps.length>8)_taps=_taps.slice(-4);
-  });
-})();
-// Panic — stop all audio immediately
-document.getElementById('panicBtn')?.addEventListener('click',()=>{
-  if(!ac)return;
-  // Stop transport
-  if(isPlaying){isPlaying=false;clearTimeout(timerID);document.getElementById('playBtn').classList.remove("on");paintPlayhead(-1);}
-  // Disconnect and reconnect master gain to kill all sound instantly
-  try{masterGain.gain.cancelScheduledValues(ac.currentTime);masterGain.gain.setValueAtTime(0,ac.currentTime);}catch(_){}
-  // Stop all active AudioBufferSourceNodes / OscillatorNodes across buses
-  Object.values(APP_BUSES).forEach(b=>{try{if(typeof b._stop==='function')b._stop();}catch(_){}});
-  // Fade back in after 200ms
-  setTimeout(()=>{if(masterGain){masterGain.gain.cancelScheduledValues(ac.currentTime);masterGain.gain.setTargetAtTime(master,ac.currentTime,0.05);}},200);
-});
 // Panic keyboard shortcut: Ctrl+.
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='.')document.getElementById('panicBtn')?.click();});
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='.'){
+    if(!ac)return;
+    if(isPlaying){isPlaying=false;clearTimeout(timerID);document.getElementById('playBtn').classList.remove("on");paintPlayhead(-1);}
+    try{masterGain.gain.cancelScheduledValues(ac.currentTime);masterGain.gain.setValueAtTime(0,ac.currentTime);}catch(_){}
+    Object.values(APP_BUSES).forEach(b=>{try{if(typeof b._stop==='function')b._stop();}catch(_){}});
+    setTimeout(()=>{if(masterGain){masterGain.gain.cancelScheduledValues(ac.currentTime);masterGain.gain.setTargetAtTime(master,ac.currentTime,0.05);}},200);
+  }
+});
 const recBtn=document.getElementById("recBtn"),reclink=document.getElementById("reclink");let recording=false;
 recBtn.addEventListener("click",()=>{
   ensureAudio();if(ac.state==="suspended")ac.resume();
@@ -2817,15 +2793,14 @@ document.addEventListener('mouseup', () => {
 });
 
 // ===== WORKSPACE RIGHT-CLICK CONTEXT MENU =====
-let _wsLocked=false;
 (function(){
   const menu=document.createElement('div');menu.id='ws-ctx-menu';
-  menu.innerHTML=`<div class="ws-ctx-item" data-action="tile">Tile windows</div><div class="ws-ctx-item" data-action="cascade">Cascade windows</div><div class="ws-ctx-sep"></div><div class="ws-ctx-item" data-action="lock" id="ws-ctx-lock">Lock workspace</div><div class="ws-ctx-sep"></div><div class="ws-ctx-item" data-action="closeall">Close all windows</div>`;
   document.body.appendChild(menu);
   function hide(){menu.style.display='none';}
   document.addEventListener('contextmenu',e=>{
     if(e.target.closest('.window')||e.target.closest('#dock')||e.target.closest('#topbar')||e.target.closest('#dock-library')||e.target.closest('#ws-ctx-menu'))return;
     e.preventDefault();
+    if(!menu.children.length)return;
     menu.style.display='block';
     const mx=Math.min(e.clientX,window.innerWidth-menu.offsetWidth-8);
     const my=Math.min(e.clientY,window.innerHeight-menu.offsetHeight-8);
@@ -2835,33 +2810,8 @@ let _wsLocked=false;
   document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});
   menu.addEventListener('click',e=>{
     const item=e.target.closest('.ws-ctx-item');if(!item)return;
-    const action=item.dataset.action;hide();
-    const wins=[...document.querySelectorAll('.window.open:not(.maxd)')];
-    if(action==='tile'){
-      const cols=Math.ceil(Math.sqrt(wins.length))||1;
-      const tw=Math.max(280,(window.innerWidth-80)/(cols*wsZoom));
-      const th=Math.max(200,(window.innerHeight-120)/(Math.ceil(wins.length/cols)*wsZoom));
-      wins.forEach((w,i)=>{
-        const col=i%cols,row=Math.floor(i/cols);
-        const sx=40+col*(tw*wsZoom+8),sy=80+row*(th*wsZoom+8);
-        w.dataset.wx=(sx-wsPanX)/wsZoom;w.dataset.wy=(sy-wsPanY)/wsZoom;
-        w.style.left=sx+'px';w.style.top=sy+'px';
-        saveWinPos(w);
-      });
-    } else if(action==='cascade'){
-      wins.forEach((w,i)=>{
-        const sx=60+i*30,sy=80+i*30;
-        w.dataset.wx=(sx-wsPanX)/wsZoom;w.dataset.wy=(sy-wsPanY)/wsZoom;
-        w.style.left=sx+'px';w.style.top=sy+'px';
-        saveWinPos(w);
-      });
-    } else if(action==='lock'){
-      _wsLocked=!_wsLocked;
-      document.getElementById('ws-ctx-lock').textContent=_wsLocked?'Unlock workspace':'Lock workspace';
-      document.body.classList.toggle('ws-locked',_wsLocked);
-    } else if(action==='closeall'){
-      wins.forEach(w=>{try{closeWindow(w.id);}catch(_){}});
-    }
+    item.dataset.fn&&window[item.dataset.fn]?.();
+    hide();
     if(typeof redrawWires==='function')redrawWires();
   });
 })();
@@ -3416,7 +3366,7 @@ function initWindowFrame(win){
       else{selectedWindows.add(win.id);win.classList.add('win-selected');}
       return;
     }
-    if(win.classList.contains('maxd')||_wsLocked)return;
+    if(win.classList.contains('maxd'))return;
     const r=win.getBoundingClientRect();
     drag={dx:e.clientX-r.left,dy:e.clientY-r.top};
     win.classList.add('dragging');

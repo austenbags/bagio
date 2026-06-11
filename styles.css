@@ -89,12 +89,6 @@
   /* transport */
   .tb-transport{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:1}
   .tb-play-btn,.tb-rec-btn{background:transparent;border:none;padding:3px;cursor:pointer;width:42px;height:42px;display:flex;align-items:center;justify-content:center;transition:transform .13s,filter .13s,opacity .13s;opacity:.82;flex-shrink:0}
-  .tb-panic-btn{background:transparent;border:1px solid rgba(200,40,20,.5);border-radius:5px;color:rgba(200,40,20,.7);cursor:pointer;font-size:11px;padding:2px 7px;height:24px;letter-spacing:.04em;transition:all .13s;flex-shrink:0;font-family:inherit}
-  .tb-panic-btn:hover{background:rgba(200,40,20,.15);border-color:rgba(200,40,20,.9);color:#ff4422;transform:scale(1.06)}
-  .tb-panic-btn:active{transform:scale(.93)}
-  .tb-tap-btn{background:transparent;border:1px solid rgba(255,255,255,.18);border-radius:5px;color:rgba(255,255,255,.5);cursor:pointer;font-size:10px;font-weight:600;padding:2px 8px;height:24px;letter-spacing:.1em;transition:all .1s;flex-shrink:0;font-family:inherit}
-  .tb-tap-btn:hover{border-color:var(--acid);color:var(--acid);transform:scale(1.06)}
-  .tb-tap-btn:active{transform:scale(.88);background:rgba(255,255,255,.06)}
   .tb-play-btn:hover,.tb-rec-btn:hover{opacity:1;transform:scale(1.12);filter:brightness(1.1)}
   .tb-play-btn:active,.tb-rec-btn:active{transform:scale(.91)}
   .tb-play-btn img,.tb-rec-btn img{width:32px;height:32px;object-fit:contain;display:block;pointer-events:none}
@@ -854,12 +848,11 @@ body.hint-mode{cursor:help;}
    ===================================================== */
 #zoom-indicator{position:fixed;bottom:108px;right:18px;z-index:300;background:rgba(20,18,14,.8);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 10px;font-size:10px;color:rgba(255,255,255,.55);letter-spacing:1px;pointer-events:none;opacity:0;transition:opacity .3s;}
 #zoom-indicator.visible{opacity:1;}
-#ws-ctx-menu{display:none;position:fixed;z-index:9000;background:rgba(20,18,14,.96);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:5px 0;min-width:170px;box-shadow:0 8px 28px rgba(0,0,0,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
-.ws-ctx-item{padding:8px 18px;font-size:12px;color:rgba(255,255,255,.8);cursor:pointer;white-space:nowrap;}
-.ws-ctx-item:hover{background:rgba(232,104,32,.18);color:#fff;}
-.ws-ctx-sep{height:1px;margin:4px 0;background:rgba(255,255,255,.1);}
-body.ws-locked .titlebar{cursor:default!important;}
-body.ws-locked .resize-grip{display:none!important;}
+#ws-ctx-menu{display:none;position:fixed;z-index:9000;background:rgba(22,17,12,.52);border:1px solid rgba(255,255,255,.16);border-top-color:rgba(255,255,255,.24);border-radius:13px;padding:6px 0;min-width:180px;box-shadow:0 16px 48px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.07) inset;backdrop-filter:blur(28px) saturate(1.9);-webkit-backdrop-filter:blur(28px) saturate(1.9);}
+.ws-ctx-item{padding:9px 18px;font-size:12px;letter-spacing:.04em;color:rgba(255,255,255,.82);cursor:pointer;white-space:nowrap;transition:background .1s,color .1s;}
+.ws-ctx-item:hover{background:rgba(232,104,32,.2);color:#fff;}
+.ws-ctx-item:active{background:rgba(232,104,32,.32);}
+.ws-ctx-sep{height:1px;margin:5px 10px;background:rgba(255,255,255,.1);}
 
 /* =====================================================
    HOTBAR SHAKE
