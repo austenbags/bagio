@@ -679,6 +679,53 @@ function initAppBuses() {
   });
 }
 
+// ===== TITLEBAR PEAK METERS =====
+const _meterBufs={};
+function _initTitlebarMeters(){
+  Object.keys(APP_BUSES).forEach(id=>{
+    const b=APP_BUSES[id];
+    if(!b||b._meterAn)return;
+    try{
+      const an=ac.createAnalyser();an.fftSize=256;an.smoothingTimeConstant=0.6;
+      b.output.connect(an);
+      b._meterAn=an;
+    }catch(_){}
+  });
+  // Add canvas to any open window titlebars
+  document.querySelectorAll('.window.open').forEach(_addMeterCanvas);
+}
+function _addMeterCanvas(win){
+  if(!win||win.querySelector('.tb-peak'))return;
+  const bar=win.querySelector('.titlebar');if(!bar)return;
+  const cv=document.createElement('canvas');cv.className='tb-peak';cv.width=28;cv.height=10;
+  bar.appendChild(cv);
+}
+(function _meterLoop(){
+  requestAnimationFrame(_meterLoop);
+  if(!ac)return;
+  document.querySelectorAll('.window.open').forEach(win=>{
+    const cv=win.querySelector('.tb-peak');
+    if(!cv){_addMeterCanvas(win);return;}
+    const b=APP_BUSES[win.id];
+    if(!b)return;
+    if(!b._meterAn){
+      try{const an=ac.createAnalyser();an.fftSize=256;an.smoothingTimeConstant=0.6;b.output.connect(an);b._meterAn=an;}catch(_){return;}
+    }
+    const buf=new Float32Array(b._meterAn.frequencyBinCount);
+    b._meterAn.getFloatTimeDomainData(buf);
+    let rms=0;for(let i=0;i<buf.length;i++)rms+=buf[i]*buf[i];
+    rms=Math.sqrt(rms/buf.length);
+    const db=20*Math.log10(Math.max(rms,1e-6));
+    const norm=Math.max(0,Math.min(1,(db+60)/60));
+    const ctx2=cv.getContext('2d');
+    const w=cv.width,h=cv.height;
+    const fill=norm>0.85?'#ff3333':norm>0.6?'#ffaa00':'rgba(232,104,32,0.9)';
+    ctx2.clearRect(0,0,w,h);
+    ctx2.fillStyle='rgba(0,0,0,0.3)';ctx2.fillRect(0,0,w,h);
+    ctx2.fillStyle=fill;ctx2.fillRect(0,h*0.2,w*norm,h*0.6);
+  });
+})();
+
 function playAcidNote(midi,accent,slide,prevSlide,time){
   const freq=midiToFreq(midi),stepDur=(60/tempo)/4;
   const osc=ac.createOscillator();osc.type=AP.wave;
@@ -2889,6 +2936,9 @@ function addWire(fromWin, fromPort, toWin, toPort) {
   if (connections.some(c => c.from.win===fromWin && c.from.port===fromPort && c.to.win===toWin && c.to.port===toPort)) return; // no duplicates
   const path = document.createElementNS('http://www.w3.org/2000/svg','path');
   path.classList.add('wire-path');
+  const baseFrom=fromWin.replace(/-i\d+$/,'');
+  const wireSigType=baseFrom==='win-lfo'?'cv':baseFrom==='win-patterns'||baseFrom==='win-pianoroll'||baseFrom==='win-arp'?'midi':'audio';
+  path.dataset.sigtype=wireSigType;
   const hit = document.createElementNS('http://www.w3.org/2000/svg','path');
   hit.setAttribute('stroke','transparent');
   hit.setAttribute('stroke-width','16');

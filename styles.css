@@ -144,6 +144,7 @@
   .lights:hover .gly{opacity:1}
   .titlebar img{width:20px;height:20px;margin-left:4px;border-radius:22%}
   .titlebar .tt{font-size:12px;letter-spacing:.5px;color:#d8d8da;flex:1;text-align:center;font-weight:600;text-transform:none;margin-right:54px}
+  .tb-peak{width:28px;height:10px;border-radius:3px;overflow:hidden;opacity:0.7;flex-shrink:0;}
   .wbody{padding:16px;overflow-y:auto;overflow-x:hidden;max-height:calc(90vh - 44px);min-width:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent;background:rgba(255,255,255,.018);border-radius:0 0 12px 12px;}
   .wbody::-webkit-scrollbar{width:4px;}
   .wbody::-webkit-scrollbar-track{background:transparent;}
@@ -532,6 +533,8 @@
 @keyframes targetPing{0%,100%{box-shadow:0 0 10px 4px var(--pc),0 0 28px var(--pc),0 0 55px var(--pc);opacity:.8;}50%{box-shadow:0 0 18px 8px var(--pc),0 0 50px var(--pc),0 0 90px var(--pc),0 0 130px var(--pc);opacity:1;}}
 /* Wire paths — colour always tracks current accent */
 .wire-path{stroke:var(--wire-color);fill:none;stroke-linecap:round;opacity:.9;filter:drop-shadow(0 0 5px var(--wire-color));}
+.wire-path[data-sigtype="cv"]{--wire-color:#4db8ff;filter:drop-shadow(0 0 5px #4db8ff);}
+.wire-path[data-sigtype="midi"]{--wire-color:#66ee88;filter:drop-shadow(0 0 5px #66ee88);}
 .wire-temp{stroke:var(--wire-color);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-dasharray:8 4;opacity:.75;filter:drop-shadow(0 0 4px var(--wire-color));}
 
 
