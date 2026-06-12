@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: macos-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-macos:
     runs-on: macos-13
