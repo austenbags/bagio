@@ -1,46 +1,27 @@
 name: Build BAGIO
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install
-        run: npm install
-
-      - name: Build + publish Windows
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run publish
-
   build-macos:
     runs-on: macos-13
     timeout-minutes: 60
-    needs: build-windows
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Node.js
+      - name: Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install
+      - name: Install dependencies
         run: npm install
 
       - name: Build macOS DMG
@@ -51,30 +32,54 @@ jobs:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
         run: npm run build-mac
 
-      - name: Show dist/
+      - name: List dist/
         if: always()
-        run: find dist/ -type f 2>/dev/null || echo "(empty)"
+        run: find dist/ -type f 2>/dev/null || echo "(dist empty or missing)"
 
-      - name: Upload DMG
+      - name: Upload DMG to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(node -e "console.log(require('./package.json').version)")
           DMG=$(find dist/ -name "*.dmg" | head -1)
-          if [ -z "$DMG" ]; then echo "ERROR: no DMG in dist/"; exit 1; fi
-          echo "Uploading $(basename $DMG) for v${VERSION}"
-          UPLOAD_URL=$(curl -sf \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" | \
-            python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-          if [ -z "$UPLOAD_URL" ]; then echo "ERROR: release not found for v${VERSION}"; exit 1; fi
-          STATUS=$(curl -s -o /tmp/upload_resp.json -w "%{http_code}" \
+          if [ -z "$DMG" ]; then
+            echo "ERROR: no .dmg found — build step failed"
+            exit 1
+          fi
+          echo "Uploading $(basename $DMG) → v${VERSION}"
+
+          # Wait up to 60s for Windows job to finish creating the release
+          for i in $(seq 1 12); do
+            RELEASE=$(curl -sf \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" 2>/dev/null)
+            [ -n "$RELEASE" ] && break
+            echo "  waiting for release to appear ($((i*5))s)..."
+            sleep 5
+          done
+
+          if [ -z "$RELEASE" ]; then
+            echo "ERROR: release v${VERSION} not found on GitHub after 60s"
+            exit 1
+          fi
+
+          UPLOAD_URL=$(echo "$RELEASE" | python3 -c \
+            "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+
+          STATUS=$(curl -s -o /tmp/up.json -w "%{http_code}" \
             -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @"$DMG" \
             "${UPLOAD_URL}?name=$(basename $DMG)")
+
           echo "HTTP $STATUS"
-          cat /tmp/upload_resp.json
-          [ "$STATUS" = "201" ] && echo "✓ DMG uploaded" || exit 1
+          cat /tmp/up.json
+          if [ "$STATUS" = "201" ]; then
+            echo "✓ macOS DMG uploaded"
+          elif [ "$STATUS" = "422" ]; then
+            echo "Asset already exists on release — skipping (not an error)"
+          else
+            exit 1
+          fi
